@@ -43,9 +43,27 @@ const App: React.FC = () => {
   const [missedQuestions, setMissedQuestions] = useState<MissedQuestion[]>([]);
   const [isLevelInfoModalOpen, setIsLevelInfoModalOpen] = useState(false);
   
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  // State for AI client and API Key validation
+  const [ai, setAi] = useState<GoogleGenAI | null>(null);
+  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
 
   useEffect(() => {
+    // API Key validation and AI client initialization using Vite's env variables
+    const apiKey = import.meta.env.VITE_API_KEY;
+    if (!apiKey) {
+      const errorMessage = "错误：未找到 API 密钥。请在 GitHub 仓库的 Settings > Secrets and variables > Actions 中设置名为 VITE_API_KEY 的密钥。";
+      setApiKeyError(errorMessage);
+      console.error(errorMessage);
+      return;
+    }
+    try {
+      const genAI = new GoogleGenAI({ apiKey });
+      setAi(genAI);
+    } catch (e) {
+      console.error("初始化 GoogleGenAI 失败", e);
+      setApiKeyError("错误：初始化 AI 服务失败。请检查您的 API 密钥是否有效。");
+    }
+
     setHistory(loadHistory());
     setTotalStars(loadStars());
   }, []);
@@ -98,6 +116,7 @@ const App: React.FC = () => {
   };
   
   const fetchExplanationAudio = async (text: string) => {
+    if (!ai) return;
     try {
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash-preview-tts",
@@ -123,6 +142,7 @@ const App: React.FC = () => {
   };
 
   const fetchExplanation = async (q: Question) => {
+    if (!ai) return;
     const symbol = getOperationSymbol(q.operation);
     const prompt = `为题目 "${q.num1} ${symbol} ${q.num2}" 生成解题思路。
 **严格遵循以下规则：**
@@ -222,6 +242,17 @@ const App: React.FC = () => {
   }
 
   const renderContent = () => {
+    // If there is an API key error, show it instead of the app content
+    if (apiKeyError) {
+      return (
+        <div className="text-center p-4 bg-red-100 border-2 border-red-300 rounded-lg">
+          <h2 className="text-2xl font-bold text-red-700 mb-2">应用启动失败</h2>
+          <p className="text-red-600">{apiKeyError}</p>
+          <p className="text-slate-500 mt-4 text-sm">对于本地开发，请在项目根目录创建 `.env.local` 文件并添加 `VITE_API_KEY=你的密钥`。</p>
+        </div>
+      );
+    }
+    
     switch (gameState) {
       case 'quiz':
         return (
@@ -253,7 +284,7 @@ const App: React.FC = () => {
         );
       case 'history':
         return (
-          <HistoryScreen history={history} onBack={restartQuiz} ai={ai} />
+          <HistoryScreen history={history} onBack={restartQuiz} ai={ai!} />
         );
       case 'settings':
       default:
@@ -278,11 +309,13 @@ const App: React.FC = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-pink-400">
               数学答题系统
           </h1>
-          <LevelDisplay 
-            totalStars={totalStars} 
-            justEarnedStar={justEarnedStar}
-            onOpenRules={() => setIsLevelInfoModalOpen(true)}
-          />
+          {!apiKeyError && (
+            <LevelDisplay 
+              totalStars={totalStars} 
+              justEarnedStar={justEarnedStar}
+              onOpenRules={() => setIsLevelInfoModalOpen(true)}
+            />
+          )}
       </header>
       <main className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl shadow-pink-200/60 p-6 sm:p-10 text-slate-700 transition-all duration-500 mt-20 sm:mt-16">
         {renderContent()}

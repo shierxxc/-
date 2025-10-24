@@ -1,9 +1,9 @@
 {
   "name": "数学答题系统",
   "private": true,
- "homepage": "https://<shierxxc>.github.io/<sxwdxt>",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "homepage": "https://shierxxc.github.io/sxwdxt",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -17,10 +17,10 @@
     "react-dom": "^19.2.0"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "gh-pages": "^6.3.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "@types/node": "^20.14.9",
+    "@vitejs/plugin-react": "^4.3.1",
+    "gh-pages": "^6.1.1",
+    "typescript": "^5.5.2",
+    "vite": "^5.3.1"
   }
 }

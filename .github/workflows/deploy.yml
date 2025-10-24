@@ -1,0 +1,55 @@
+# GitHub Pages 部署工作流
+name: Deploy to GitHub Pages
+
+on:
+  # 在推送到 main 分支时触发
+  push:
+    branches: [ "main" ] # 如果你的主分支是 master，请改为 master
+  # 允许你手动从 Actions 标签页运行此工作流
+  workflow_dispatch:
+
+# 设置 GITHUB_TOKEN 的权限以允许部署到 GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 只允许一个并发部署，会取消正在进行中的、但不是最新的那次部署
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 🏗️
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies 📦
+        run: npm install
+
+      - name: Build application 🛠️
+        run: npm run build
+        env:
+          # VITE_API_KEY 这个名字必须和 GitHub Secret 以及代码中的变量名一致
+          VITE_API_KEY: ${{ secrets.VITE_API_KEY }}
+
+      - name: Setup Pages ⚙️
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact ⬆️
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # 从 dist 文件夹上传
+          path: './dist'
+
+      - name: Deploy to GitHub Pages 🚀
+        id: deployment
+        uses: actions/deploy-pages@v4
