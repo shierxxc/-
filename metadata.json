@@ -1,0 +1,5 @@
+{
+  "name": "数学答题系统",
+  "description": "A delightful and adorable math quiz application for kids to practice various arithmetic problems. Users can choose the type of operation, number range, and answer format to customize their learning experience.",
+  "requestFramePermissions": []
+}
